@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Lab 9</title>
+        <meta name="description" content="Learning JS">
+        <link rel="stylesheet" href="styles.css" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div class="pane top">
+   
+        </div>
+        <div class="main">
+            <div>
+                <h2>Enter data to work with files:</h2>
+                <form method="GET" id="form">
+                    <p>File name: <input type="text" name="name" /></p>
+                    <p>File content: </p>
+                    <p><textarea cols="73" rows="10" placeholder="Enter content here" name="content" noresize></textarea></p>
+                    <div class="inputs">
+                        <input type="submit" value="Create/rewrite" class="btn" id="cr">
+                        <input type="submit" value="Delete" class="btn" id="dl">
+                        <input type="submit" value="Show content" class="btn" id="sw">
+                    </div>
+                </form>
+                <script>
+                    function refresh(){
+                        $('li').remove()
+                        $.ajax({type: "GET", url: "textFiles.xml", dataType: "xml", 
+                            success: function(xml) {
+                                $(xml).find('textFiles').each(function(){	 	
+                                    $(this).find('file').each(function(){
+                                        $('ol').append($('<li/>').html($(this).attr('id')))
+                                    })
+                                })
+                            }
+                        })
+                    }
+
+                    function log(title, text){
+                        $('#notificationType').html(title)
+                        $('#notification').html(text)
+                    }
+                    
+                    refresh()
+
+                    $('#cr').click( e => {
+                        e.preventDefault();                      
+                        
+                        const data = new FormData(form);
+                        
+                        if(data.get('name')==''){
+                            log('Error!', 'No name entered')
+                        }
+                        else {
+                            $.ajax({
+                                url: "editFiles.php",    
+                                type: "POST",          
+                                data:  data,   
+                                contentType: false,         
+                                cache: false,     
+                                processData: false,
+                                success: function(){
+                                    log('Log', 'Creating/rewriting is done')
+                                    refresh()
+                                }
+                            });
+                        }
+                    });
+                    $('#dl').click( e => {
+                        e.preventDefault();
+
+                        const data = new FormData(form);
+
+                        if(data.get('name')==''){
+                            log('Error!', 'No name entered')
+                        }
+                        else {
+                            log('Error!', 'File does not exist')
+                            $.ajax({
+                                url: "deleteFile.php",    
+                                type: "POST",          
+                                data:  data,   
+                                contentType: false,         
+                                cache: false,     
+                                processData:false,
+                                success: function(){
+                                    log('Log', 'File with such name doesnt exist anymore')
+                                    refresh()
+                                }
+                            });
+                        }   
+                    });
+                    
+                    $('#sw').click( e => {
+                        e.preventDefault();
+
+                        const data = new FormData(form);
+
+                        if(data.get('name')==''){
+                            log('Error!', 'No name entered')
+                        }
+                        else {
+                            log('Error!', 'File does not exist')
+                            $.ajax({type: "GET", url: "textFiles.xml", dataType: "xml", 
+                                success: function(xml) {
+                                    $(xml).find('#'+data.get('name')).each(function(){	 
+                                        log('Content of file ' + data.get('name'), $(this).html())
+                                    })
+                                }
+                            })
+                        }
+                    });
+                </script>
+            </div> 
+            <div>
+                <h2>File list</h2>
+                <ol>
+
+                </ol>
+                <div class="btn" onclick="refresh();">Refresh</div>
+            </div>
+            <div>
+                <h2 id="notificationType"></h2>
+                <div id="notification">
+
+                </div>
+                <script>
+                    log('Log', 'Page loaded successfully')
+                </script>
+            </div>
+        </div>
+        <div class="pane bot">
+            
+        </div>
+    </body>
+</html>
